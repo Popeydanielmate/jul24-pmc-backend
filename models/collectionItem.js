@@ -1,23 +1,23 @@
 const mongoose = require('mongoose');
 
 const CollectionItemSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true
-  },
-  format: {
-    type: String,
-    required: true
-  },
-  value: {
-    type: Number,
-    required: true
-  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
-  }
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  type: {
+    type: String,
+    required: true,
+  },
+  description: String,
 }, { timestamps: true });
 
-module.exports = mongoose.model('CollectionItem', CollectionItemSchema);
+const CollectionItem = mongoose.model('CollectionItem', CollectionItemSchema);
+
+module.exports = CollectionItem;
+
