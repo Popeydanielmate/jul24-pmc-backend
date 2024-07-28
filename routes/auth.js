@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/user');
+const CollectionItem = require('../models/collectionItem');
+const auth = require('../middleware/auth'); 
 
 const router = express.Router();
 
@@ -112,6 +114,24 @@ router.post(
   }
 );
 
+// Delete user account
+router.delete('/', auth, async (req, res) => {
+    try {
+      const userId = req.user.id;
+  
+      // Delete all collection items associated with the user
+      await CollectionItem.deleteMany({ userId });
+  
+      // Delete the user
+      await User.findByIdAndDelete(userId); // Use findByIdAndDelete instead of findByIdAndRemove
+  
+      res.json({ message: 'User and all associated collection items deleted' });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+    }
+  });
+  
 module.exports = router;
 
 
