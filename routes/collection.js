@@ -89,24 +89,25 @@ router.put('/:id', auth, async (req, res) => {
 
 // Delete a collection item
 router.delete('/:id', auth, async (req, res) => {
-  try {
-    let item = await CollectionItem.findById(req.params.id);
-
-    if (!item) return res.status(404).json({ message: 'Item not found' });
-
-    // Ensure user owns the item
-    if (item.user.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'Not authorized' });
+    try {
+      let item = await CollectionItem.findById(req.params.id);
+  
+      if (!item) return res.status(404).json({ message: 'Item not found' });
+  
+      // Ensure user owns the item
+      if (item.user.toString() !== req.user.id) {
+        return res.status(401).json({ message: 'Not authorized' });
+      }
+  
+      await CollectionItem.findByIdAndDelete(req.params.id);
+  
+      res.json({ message: 'Item removed' });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
     }
-
-    await CollectionItem.findByIdAndRemove(req.params.id);
-
-    res.json({ message: 'Item removed' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
+  });
+  
 
 module.exports = router;
 
