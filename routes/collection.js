@@ -7,32 +7,39 @@ const router = express.Router();
 
 // Create a collection item
 router.post(
-  '/',
-  [auth, [check('title', 'Title is required').not().isEmpty()]],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    '/',
+    [
+      auth, 
+      [
+        check('title', 'Title is required').not().isEmpty(),
+        check('format', 'Format is required').not().isEmpty()
+      ]
+    ],
+    async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+  
+      const { title, format, description } = req.body;
+  
+      try {
+        const newItem = new CollectionItem({
+          title,
+          format,
+          description,
+          user: req.user.id,
+        });
+  
+        const item = await newItem.save();
+        res.json(item);
+      } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+      }
     }
-
-    const { title, format, description } = req.body;
-
-    try {
-      const newItem = new CollectionItem({
-        title,
-        format,
-        description,
-        user: req.user.id,
-      });
-
-      const item = await newItem.save();
-      res.json(item);
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server error');
-    }
-  }
-);
+  );
+  
 
 // Get all collection items for the logged-in user
 router.get('/', auth, async (req, res) => {

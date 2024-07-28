@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const CollectionItemSchema = new mongoose.Schema({
-  userId: {
+  user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
@@ -10,7 +10,7 @@ const CollectionItemSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  type: {
+  format: {
     type: String,
     required: true,
   },
@@ -20,4 +20,5 @@ const CollectionItemSchema = new mongoose.Schema({
 const CollectionItem = mongoose.model('CollectionItem', CollectionItemSchema);
 
 module.exports = CollectionItem;
+
 
