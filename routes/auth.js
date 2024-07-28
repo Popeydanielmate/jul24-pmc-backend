@@ -5,6 +5,7 @@ const { check, validationResult } = require('express-validator');
 const User = require('../models/user');
 const CollectionItem = require('../models/collectionItem');
 const auth = require('../middleware/auth'); 
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
@@ -126,6 +127,50 @@ router.delete('/', auth, async (req, res) => {
       await User.findByIdAndDelete(userId); // Use findByIdAndDelete instead of findByIdAndRemove
   
       res.json({ message: 'User and all associated collection items deleted' });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+    }
+  });
+
+  // Request password reset
+router.post('/request-reset-password', async (req, res) => {
+    const { email } = req.body;
+    try {
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).json({ message: 'User not found' });
+      }
+  
+      const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+  
+      // Send email with the resetToken (implement email sending logic)
+      // Example: sendResetPasswordEmail(user.email, resetToken);
+  
+      res.json({ message: 'Password reset email sent' });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+    }
+  });
+  
+  // Reset password
+  router.post('/reset-password', async (req, res) => {
+    const { token, newPassword } = req.body;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid token' });
+      }
+  
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+      await user.save();
+  
+      res.json({ message: 'Password has been reset' });
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server error');
