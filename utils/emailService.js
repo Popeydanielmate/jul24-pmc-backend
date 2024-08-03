@@ -1,27 +1,28 @@
 const nodemailer = require('nodemailer');
 
-const sendResetPasswordEmail = async (email, token) => {
-  const transporter = nodemailer.createTransport({
-    service: 'Gmail',
+console.log('EMAIL_USER:', process.env.EMAIL_USER);
+console.log('EMAIL_PASS:', process.env.EMAIL_PASS);
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.office365.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
     auth: {
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_PASSWORD,
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
   });
 
+const sendEmail = (to, subject, text) => {
   const mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: 'Password Reset Request',
-    text: `You have requested a password reset. Please use the following token to reset your password: ${token}`,
+    from: process.env.EMAIL_USER,
+    to: 'popeydaniel@hotmail.com',
+    subject: 'Test Email from Physical Media Collection App',
+    text: 'This is a test email to verify the email service configuration.',
   };
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('Password reset email sent');
-  } catch (error) {
-    console.error('Error sending email:', error);
-  }
+  return transporter.sendMail(mailOptions);
 };
 
-module.exports = sendResetPasswordEmail;
+module.exports = sendEmail;
+

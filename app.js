@@ -2,10 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const path = require('path');
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
 const authRoutes = require('./routes/auth');
 const collectionRoutes = require('./routes/collection');
+const emailTestRoute = require('./routes/emailTest');
 
-dotenv.config();
+// Debugging: Log environment variables
+console.log('EMAIL_USER:', process.env.EMAIL_USER);
+console.log('EMAIL_PASS:', process.env.EMAIL_PASS);
 
 const app = express();
 
@@ -24,4 +31,8 @@ mongoose.connect(process.env.MONGO_URI)
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Email testing
+app.use('/api', emailTestRoute);
+
 
