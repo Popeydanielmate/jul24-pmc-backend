@@ -36,14 +36,15 @@ router.post(
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
         await user.save();
-  
+
+        
         // Generate verification token
         const verificationToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         console.log('Verification token generated:', verificationToken);
-  
-        // Send verification email
+
         const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-        await sendEmail(email, 'Verify Your Email', `Please verify your email by clicking the following link: ${verificationUrl}`);
+        await sendEmail(email, 'Verify Your Email', `Please verify your email by clicking the following link: ${verificationUrl}`, `<p>Please verify your email by clicking the following link: <a href="${verificationUrl}">${verificationUrl}</a></p>`);
+
         
   
         res.status(201).json({ message: 'User registered successfully. Please check your email to verify your account.' });
@@ -55,26 +56,35 @@ router.post(
   );
   
   
+ // Verify email
 router.get('/verify-email', async (req, res) => {
     const { token } = req.query;
+    console.log('Verification endpoint hit with token:', token);
   
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('Decoded token:', decoded);
       const user = await User.findById(decoded.userId);
+      console.log('User:', user);
   
       if (!user) {
+        console.log('User not found for token:', token); 
         return res.status(400).json({ message: 'Invalid token' });
       }
   
       user.isVerified = true;
       await user.save();
   
+      console.log('Email verified for user:', user.email); 
       res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
     } catch (err) {
       console.error('Email verification error:', err.message);
-      res.status(500).send('Server error');
+      res.status(500).send({ message: 'Server error' });
     }
   });
+  
+  
+  
   
 
 
@@ -131,11 +141,11 @@ router.delete('/', auth, async (req, res) => {
     try {
       const userId = req.user.id;
   
-      // Delete all collection items associated with the user
+      
       await CollectionItem.deleteMany({ userId });
   
-      // Delete the user
-      await User.findByIdAndDelete(userId); // Use findByIdAndDelete instead of findByIdAndRemove
+      
+      await User.findByIdAndDelete(userId); 
   
       res.json({ message: 'User and all associated collection items deleted' });
     } catch (err) {

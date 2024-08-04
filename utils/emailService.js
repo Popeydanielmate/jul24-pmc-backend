@@ -10,12 +10,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendEmail = (to, subject, text) => {
+const sendEmail = (to, subject, text, html) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: to,
     subject: subject,
     text: text,
+    html: html,
   };
 
   // Log to check email details
@@ -33,4 +34,3 @@ const sendEmail = (to, subject, text) => {
 };
 
 module.exports = sendEmail;
-
