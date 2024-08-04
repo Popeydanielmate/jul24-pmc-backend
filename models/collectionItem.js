@@ -10,11 +10,15 @@ const CollectionItemSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  artist: {
+    type: String,
+    required: false,
+  },
   format: {
     type: String,
     required: true,
   },
-  description: String,
+  
 }, { timestamps: true });
 
 const CollectionItem = mongoose.model('CollectionItem', CollectionItemSchema);

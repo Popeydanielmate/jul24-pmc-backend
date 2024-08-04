@@ -1,24 +1,35 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.office365.com',
-    port: 587,
-    secure: false, 
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  host: 'smtp.office365.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 const sendEmail = (to, subject, text) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: 'popeydaniel@hotmail.com',
-    subject: 'Test Email from Physical Media Collection App',
-    text: 'This is a test email to verify the email service configuration.',
+    to: to,
+    subject: subject,
+    text: text,
   };
 
-  return transporter.sendMail(mailOptions);
+  // Log to check email details
+  console.log('Sending email to:', to);
+  console.log('Email subject:', subject);
+  console.log('Email text:', text);
+
+  return transporter.sendMail(mailOptions)
+    .then(info => {
+      console.log('Email sent:', info.response);
+    })
+    .catch(error => {
+      console.error('Error sending email:', error);
+    });
 };
 
 module.exports = sendEmail;

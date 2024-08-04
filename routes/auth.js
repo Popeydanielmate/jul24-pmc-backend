@@ -4,68 +4,79 @@ const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/user');
 const CollectionItem = require('../models/collectionItem');
-const auth = require('../middleware/auth'); 
-
+const sendEmail = require('../utils/emailService'); 
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 
 // Register user
 router.post(
-  '/register',
-  [
-    check('username', 'Username is required').not().isEmpty(),
-    check('email', 'Please include a valid email').isEmail(),
-    check('password', 'Password must be at least 6 characters').isLength({
-      min: 6,
-    }),
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { username, email, password } = req.body;
-
-    try {
-      let user = await User.findOne({ email });
-
-      if (user) {
-        return res.status(400).json({ message: 'User already exists' });
+    '/register',
+    [
+      check('username', 'Username is required').not().isEmpty(),
+      check('email', 'Please include a valid email').isEmail(),
+      check('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
+    ],
+    async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
       }
-
-      user = new User({
-        username,
-        email,
-        password,
-      });
-
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-
-      await user.save();
-
-      const payload = {
-        user: {
-          id: user.id,
-        },
-      };
-
-      jwt.sign(
-        payload,
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' },
-        (err, token) => {
-          if (err) throw err;
-          res.json({ token, user });
+  
+      const { username, email, password } = req.body;
+  
+      try {
+        let user = await User.findOne({ email });
+  
+        if (user) {
+          return res.status(400).json({ message: 'User already exists' });
         }
-      );
+  
+        user = new User({ username, email, password });
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+        await user.save();
+  
+        // Generate verification token
+        const verificationToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        console.log('Verification token generated:', verificationToken);
+  
+        // Send verification email
+        const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+        await sendEmail(email, 'Verify Your Email', `Please verify your email by clicking the following link: ${verificationUrl}`);
+        
+  
+        res.status(201).json({ message: 'User registered successfully. Please check your email to verify your account.' });
+      } catch (err) {
+        console.error('Server error:', err.message);
+        res.status(500).send('Server error');
+      }
+    }
+  );
+  
+  
+router.get('/verify-email', async (req, res) => {
+    const { token } = req.query;
+  
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.userId);
+  
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid token' });
+      }
+  
+      user.isVerified = true;
+      await user.save();
+  
+      res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
     } catch (err) {
-      console.error(err.message);
+      console.error('Email verification error:', err.message);
       res.status(500).send('Server error');
     }
-  }
-);
+  });
+  
+
 
 // Login user
 router.post(
@@ -145,9 +156,6 @@ router.post('/request-reset-password', async (req, res) => {
       const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
         expiresIn: '1h',
       });
-  
-      // Send email with the resetToken (implement email sending logic)
-      // Example: sendResetPasswordEmail(user.email, resetToken);
   
       res.json({ message: 'Password reset email sent' });
     } catch (err) {

@@ -21,13 +21,14 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
   
-      const { title, format, description } = req.body;
+      const { title, artist, format,  } = req.body;
   
       try {
         const newItem = new CollectionItem({
           title,
+          artist,
           format,
-          description,
+          
           user: req.user.id,
         });
   
@@ -56,13 +57,14 @@ router.get('/', auth, async (req, res) => {
 
 // Update a collection item
 router.put('/:id', auth, async (req, res) => {
-  const { title, format, description } = req.body;
+  const { title, artist, format,  } = req.body;
 
   // Build item object
   const itemFields = {};
   if (title) itemFields.title = title;
+  if (artist) itemFields.artist = artist;
   if (format) itemFields.format = format;
-  if (description) itemFields.description = description;
+  
 
   try {
     let item = await CollectionItem.findById(req.params.id);
