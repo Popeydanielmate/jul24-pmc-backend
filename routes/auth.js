@@ -1,57 +1,69 @@
 const express = require('express');
+const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { check, validationResult } = require('express-validator');
 const User = require('../models/user');
 const sendEmail = require('../utils/emailService');
-const auth = require('../middleware/auth');
+const auth = require('../middleware/auth'); 
 const path = require('path');
 const router = express.Router();
 
 router.post(
-    '/register',
-    [
-      check('username', 'Username is required').not().isEmpty(),
-      check('email', 'Please include a valid email').isEmail(),
-      check('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
-    ],
-    async (req, res) => {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const { username, email, password } = req.body;
-  
-      try {
-        let user = await User.findOne({ email });
-  
-        if (user) {
-          return res.status(400).json({ message: 'User already exists' });
-        }
-  
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-        console.log('Original password:', password); 
-        console.log('Hashed password:', hashedPassword);
-  
-        user = new User({
-          username,
-          email,
-          password: hashedPassword, 
-          isVerified: true, 
-        });
-  
-        await user.save();
-  
-        res.status(201).json({ message: 'User registered successfully.' });
-      } catch (err) {
-        console.error('Server error:', err.message);
-        res.status(500).send('Server error');
-      }
+  '/register',
+  [
+    check('username', 'Username is required').not().isEmpty(),
+    check('email', 'Please include a valid email').isEmail(),
+    check('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
-  );
-  
+
+    const { username, email, password } = req.body;
+
+    try {
+      let user = await User.findOne({ email });
+
+      if (user) {
+        return res.status(400).json({ message: 'User already exists' });
+      }
+
+      user = new User({
+        username,
+        email,
+        password, 
+        isVerified: true, 
+      });
+
+      await user.save();
+
+      console.log('User saved:', user); 
+
+      const htmlContent = `
+        <p>Welcome to Physical Media Cataloging, ${username}!</p>
+        <img src="cid:vhs" alt="Welcome Image" style="width:300px;height:auto;" />
+        <p>Now you're ready to log in and add to your collection!</p>
+      `;
+
+      const imagePath = path.join(__dirname, '../assets/vhs.jpg');
+      await sendEmail(email, 'Welcome to Physical Media Cataloging', "", htmlContent, [
+        {
+          filename: 'vhs.jpg',
+          path: imagePath,
+          cid: 'vhs'
+        }
+      ]);
+
+      res.status(201).json({ message: 'User registered successfully. A welcome email has been sent.' });
+    } catch (err) {
+      console.error('Server error:', err.message);
+      res.status(500).send('Server error');
+    }
+  }
+);
+
 
 
 // Login user
