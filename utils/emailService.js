@@ -10,19 +10,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendEmail = (to, subject, text, html) => {
+const sendEmail = (to, subject, text, html, attachments = []) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: to,
     subject: subject,
-    text: text,
+    text: text, 
     html: html,
+    attachments: attachments, 
   };
-
-  // Log to check email details
-  console.log('Sending email to:', to);
-  console.log('Email subject:', subject);
-  console.log('Email text:', text);
 
   return transporter.sendMail(mailOptions)
     .then(info => {
@@ -34,3 +30,4 @@ const sendEmail = (to, subject, text, html) => {
 };
 
 module.exports = sendEmail;
+
