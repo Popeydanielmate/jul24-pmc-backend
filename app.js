@@ -4,7 +4,10 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
 
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+dotenv.config({
+  path: `.env.${process.env.NODE_ENV}` || '.env'
+});
 
 const authRoutes = require('./routes/auth');
 const collectionRoutes = require('./routes/collection');
@@ -34,5 +37,3 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // Email testing
 app.use('/api', emailTestRoute);
-
-
