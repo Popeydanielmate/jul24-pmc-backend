@@ -5,9 +5,11 @@ const dotenv = require('dotenv');
 const path = require('path');
 
 
+const currentEnv = process.env.NODE_ENV || 'development';
 dotenv.config({
-  path: `.env.${process.env.NODE_ENV}` || '.env'
+  path: `.env.${currentEnv}`
 });
+
 
 const authRoutes = require('./routes/auth');
 const collectionRoutes = require('./routes/collection');
