@@ -24,5 +24,3 @@ const CollectionItemSchema = new mongoose.Schema({
 const CollectionItem = mongoose.model('CollectionItem', CollectionItemSchema);
 
 module.exports = CollectionItem;
-
-

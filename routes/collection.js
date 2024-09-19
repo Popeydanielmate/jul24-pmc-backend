@@ -16,10 +16,10 @@ router.post(
       ],
     ],
     async (req, res) => {
-      console.log('Request received with data:', req.body); // Log incoming request data
+      console.log('Request received with data:', req.body); 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        console.log('Validation errors:', errors.array()); // Log validation errors
+        console.log('Validation errors:', errors.array()); 
         return res.status(400).json({ errors: errors.array() });
       }
   
@@ -34,10 +34,10 @@ router.post(
         });
   
         const item = await newItem.save();
-        console.log('Item successfully saved:', item); // Log successful save
+        console.log('Item successfully saved:', item); 
         res.json(item);
       } catch (err) {
-        console.error('Server error during save:', err.message); // Log server error
+        console.error('Server error during save:', err.message); 
         res.status(500).send('Server error');
       }
     }
