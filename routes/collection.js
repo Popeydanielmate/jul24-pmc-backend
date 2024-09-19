@@ -7,42 +7,43 @@ const router = express.Router();
 
 // Create a collection item
 router.post(
-    '/',
+  '/',
+  [
+    auth,
     [
-      auth,
-      [
-        check('title', 'Title is required').not().isEmpty(),
-        check('format', 'Format is required').not().isEmpty(),
-      ],
+      check('title', 'Title is required').not().isEmpty(),
+      check('format', 'Format is required').not().isEmpty(),
+      check('price', 'Price must be a number').optional().isNumeric(),
     ],
-    async (req, res) => {
-      console.log('Request received with data:', req.body); 
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        console.log('Validation errors:', errors.array()); 
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const { title, artist, format } = req.body;
-  
-      try {
-        const newItem = new CollectionItem({
-          title,
-          artist,
-          format,
-          user: req.user.id,
-        });
-  
-        const item = await newItem.save();
-        console.log('Item successfully saved:', item); 
-        res.json(item);
-      } catch (err) {
-        console.error('Server error during save:', err.message); 
-        res.status(500).send('Server error');
-      }
+  ],
+  async (req, res) => {
+    console.log('Request received with data:', req.body); 
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array()); 
+      return res.status(400).json({ errors: errors.array() });
     }
-  );
-  
+
+    const { title, artist, format, price } = req.body;
+
+    try {
+      const newItem = new CollectionItem({
+        title,
+        artist,
+        format,
+        price,  
+        user: req.user.id,
+      });
+
+      const item = await newItem.save();
+      console.log('Item successfully saved:', item); 
+      res.json(item);
+    } catch (err) {
+      console.error('Server error during save:', err.message); 
+      res.status(500).send('Server error');
+    }
+  }
+);
 
 // Get all collection items for the logged-in user
 router.get('/', auth, async (req, res) => {
@@ -60,13 +61,14 @@ router.get('/', auth, async (req, res) => {
 
 // Update a collection item
 router.put('/:id', auth, async (req, res) => {
-  const { title, artist, format } = req.body;
+  const { title, artist, format, price } = req.body;
 
   // Build item object
   const itemFields = {};
   if (title) itemFields.title = title;
   if (artist) itemFields.artist = artist;
   if (format) itemFields.format = format;
+  if (price !== undefined) itemFields.price = price; 
 
   console.log('Updating item with data:', itemFields);
 
@@ -125,4 +127,3 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
-
