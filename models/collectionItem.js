@@ -18,7 +18,11 @@ const CollectionItemSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  
+  price: {
+    type: Number,  
+    required: false, 
+    default: 0,     
+  },
 }, { timestamps: true });
 
 const CollectionItem = mongoose.model('CollectionItem', CollectionItemSchema);
